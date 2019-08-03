@@ -1,0 +1,61 @@
+---
+title: "Random Forest for Biometric Data"
+author: "Brandon Hansen"
+date: "7/31/2019"
+output: html_document
+---
+
+Load the data into R to be used with the generalized linear model.
+Divide the data into a training and testing sets.
+
+```{r}
+library(caret)
+training <- na.exclude(read.csv("pml-training.csv"))
+training$classe <- as.factor(training$classe)
+testing <- read.csv("pml-testing.csv")
+```
+
+Specify the control for the cross validation.
+In this case I'm using 20 fold cross validation.
+```{r}
+control <- trainControl(method="cv", number=20)
+```
+
+Model was built using random forest as the machine learning algorithm.
+Feature selection was determined from seperate experiments with differing feature combinations.
+Feature selection was also determined by feature presence in test dataset.
+```{r}
+ml <- train(classe ~ 
+                roll_belt + pitch_belt + yaw_belt
+              + accel_belt_x + accel_belt_y + accel_belt_z
+              #+ gyros_belt_x + gyros_belt_y + gyros_belt_z
+              + magnet_belt_x + magnet_belt_y + magnet_belt_z
+            
+              #+ roll_arm + pitch_arm + yaw_arm 
+              #+ accel_arm_x + accel_arm_y + accel_arm_z
+              #+ gyros_arm_x + gyros_arm_y + gyros_arm_z
+              #+ magnet_arm_x + magnet_arm_y + magnet_arm_z
+            
+              + roll_dumbbell + pitch_dumbbell + yaw_dumbbell
+              + accel_dumbbell_x + accel_dumbbell_y + accel_dumbbell_z
+              #+ gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z
+              + magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z
+            
+              + roll_forearm + pitch_forearm + yaw_forearm
+              + accel_forearm_x + accel_forearm_y + accel_forearm_z
+              #+ gyros_forearm_x + gyros_forearm_y + gyros_forearm_z
+              + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, 
+              model = "rf", data = training,
+              trControl = control)
+
+print(ml)
+```
+Cross validation was not only used to test the models accuracy but to also select the best model out the individual ones generated.
+
+Based on results from the 20 fold cross validation, the expected out of sample error should be similar to the error found above.
+
+Generation of predictions for test dataset.
+```{r}
+predict(ml, testing)
+```
+
